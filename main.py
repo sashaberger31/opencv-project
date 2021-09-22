@@ -17,7 +17,7 @@ cv2.imshow("Blue", imageBlue)
 cv2.waitKey(0)
 cv2.destroyAllWindows()
 
-image = cv2.GaussianBlur(imageGray, (7, 7), 2)
+image = cv2.GaussianBlur(imageGray, (11, 11), 2)
 cv2.imshow("Blur", image)
 cv2.waitKey(0)
 #(T, imageGray) = cv2.threshold(imageGray, 200, 255, cv2.THRESH_BINARY)
@@ -26,9 +26,13 @@ canny = cv2.Canny(imageGray, 170, 180)
 cv2.imshow("Canny", canny)
 cv2.waitKey(0)
 cv2.destroyAllWindows()
-
-(countours, hierarchy) = cv2.findContours(edged.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-
+(contours, hierarchy) = cv2.findContours(canny.copy(), cv2.RETR_LIST, cv2.CHAIN_APPROX_NONE)
+#create an empty image for contours
+img_contours = image.copy()
+# draw the contours on the empty image
+cv2.drawContours(img_contours, contours, -1, (0,255,0), 3)
+cv2.imshow("Contours", img_contours)
+cv2.waitKey(0)
 """
 (T, img2) = cv2.threshold(img2, 150, 255, cv2.THRESH_BINARY)
 cv2.imshow("Thresh", img2)

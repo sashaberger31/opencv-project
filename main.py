@@ -26,9 +26,45 @@ canny = cv2.Canny(imageGray, 170, 180)
 cv2.imshow("Canny", canny)
 cv2.waitKey(0)
 cv2.destroyAllWindows()
-(contours, hierarchy) = cv2.findContours(canny.copy(), cv2.RETR_LIST, cv2.CHAIN_APPROX_NONE)
+(contours, hierarchy) = cv2.findContours(canny.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
 #create an empty image for contours
-img_contours = image.copy()
+img_contours = np.copy(image)
+print(hierarchy)
+
+
+for i in range(len(hierarchy)):
+    if hierarchy[i][2] != -1:
+
+
+def getDeepest(hierarchy, contourNum):
+    """
+    Function to find the deepest child contour inside of contourNum and then
+    return (the index of) its n-th parent. If the n-th parent is above contourNum,
+    return -1
+    """
+
+
+    # We will use a recursive depth-first search
+    firstChild = hierarchy[contourNum][2]
+    if firstChild == -1:
+        return (contourNum,0)
+    else:
+        deepest, depth = getDeepest(hierarchy, firstChild)
+
+    curContour = contourNum
+    while True:
+        next = hierarchy[curContour][0]
+        if next != -1:
+            newDeepest, newDepth = getDeepest(hierarchy, next)
+            if newDepth >= depth:
+                depth = newDepth
+                deepest = newDeepest
+        else:
+            break
+    return (deepest, depth)
+
+
+
 # draw the contours on the empty image
 cv2.drawContours(img_contours, contours, -1, (0,255,0), 3)
 cv2.imshow("Contours", img_contours)

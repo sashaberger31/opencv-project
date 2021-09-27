@@ -3,6 +3,59 @@ import argparse
 import numpy as np
 
 
+def getTrackerFromContour(contours, hierarchy):
+    deepest = 0
+    depth = 0
+    for contourId in range(len(hierarchy[0])):
+        newDeepest, newDepth = getDeepest(hierarchy, contourId)
+        if newDepth > depth:
+            depth = newDepth
+            deepest = newDeepest
+    if depth>2:
+        perimeter = cv2.arcLength(contours[deepest], True)
+        approx = cv2.approxPolyDP(contours[deepest], 0.02 * perimeter, True)
+        print(len(approx))
+    else:
+        print("Failed to find a suitable tracker.")
+
+
+
+def getDeepest(hierarchy, contourNum):
+    """
+    Function to find the deepest child contour inside of contourNum and then
+    return (the index of) its n-th parent. If the n-th parent is above contourNum,
+    return -1
+    """
+
+    print(contourNum)
+    # We will use a recursive depth-first search
+    firstChild = hierarchy[0][contourNum][2]
+
+    if firstChild == -1:
+        print(firstChild)
+        return (contourNum,1)
+    else:
+        deepest, depth = getDeepest(hierarchy, firstChild)
+
+    curContour = contourNum
+    while True:
+        next = hierarchy[0][curContour][0]
+        if next != -1:
+            newDeepest, newDepth = getDeepest(hierarchy, next)
+            print("hihi")
+            if newDepth > depth:
+                print("reassigning)")
+                depth = newDepth
+                deepest = newDeepest
+        else:
+            print("Breaking")
+            break
+        curContour = next
+    return (deepest, depth+1)
+
+
+
+
 parser = argparse.ArgumentParser()
 parser.add_argument("-i", "--image", required = True)
 args = vars(parser.parse_args())
@@ -29,41 +82,8 @@ cv2.destroyAllWindows()
 (contours, hierarchy) = cv2.findContours(canny.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
 #create an empty image for contours
 img_contours = np.copy(image)
-print(hierarchy)
 
-
-for i in range(len(hierarchy)):
-    if hierarchy[i][2] != -1:
-
-
-def getDeepest(hierarchy, contourNum):
-    """
-    Function to find the deepest child contour inside of contourNum and then
-    return (the index of) its n-th parent. If the n-th parent is above contourNum,
-    return -1
-    """
-
-
-    # We will use a recursive depth-first search
-    firstChild = hierarchy[contourNum][2]
-    if firstChild == -1:
-        return (contourNum,0)
-    else:
-        deepest, depth = getDeepest(hierarchy, firstChild)
-
-    curContour = contourNum
-    while True:
-        next = hierarchy[curContour][0]
-        if next != -1:
-            newDeepest, newDepth = getDeepest(hierarchy, next)
-            if newDepth >= depth:
-                depth = newDepth
-                deepest = newDeepest
-        else:
-            break
-    return (deepest, depth)
-
-
+getTrackerFromContour(contours, hierarchy)
 
 # draw the contours on the empty image
 cv2.drawContours(img_contours, contours, -1, (0,255,0), 3)
